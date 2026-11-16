@@ -471,6 +471,7 @@ class BaseEmissionsTracker(ABC):
         rapl_prefer_psys: Optional[bool] = _sentinel,
         metadata: Optional[Union[dict, str]] = _sentinel,
         use_national_grid_eso_api: Optional[bool] = _sentinel,
+        use_ercot_api: Optional[bool] = _sentinel,
     ):
         """
         :param project_name: Project name for current experiment run, default name
@@ -596,6 +597,13 @@ class BaseEmissionsTracker(ABC):
                                  for 5 minutes per process, back-off after a failure)
                                  and reports a Great-Britain-wide figure, not a
                                  regional one. Defaults to False.
+        :param use_ercot_api: Opt-in: when True and the detected location is Texas,
+                                 compute live carbon intensity from ERCOT's public
+                                 fuel-mix dashboard (5-minute generation by fuel)
+                                 with CodeCarbon's per-source factors, instead of the
+                                 static annual state average. This makes a network
+                                 call (4 s timeout, value cached for 5 minutes per
+                                 process, back-off after a failure). Defaults to False.
         """
 
         # logger.info("base tracker init")
@@ -665,6 +673,7 @@ class BaseEmissionsTracker(ABC):
         self._set_from_conf(
             use_national_grid_eso_api, "use_national_grid_eso_api", False, bool
         )
+        self._set_from_conf(use_ercot_api, "use_ercot_api", False, bool)
         self._set_from_conf(pue, "pue", 1.0, float)
         self._set_from_conf(wue, "wue", 0, float)
         self._set_from_conf(force_mode_cpu_load, "force_mode_cpu_load", False, bool)
@@ -1836,6 +1845,7 @@ def track_emissions(
     rapl_prefer_psys: Optional[bool] = _sentinel,
     metadata: Optional[Union[dict, str]] = _sentinel,
     use_national_grid_eso_api: Optional[bool] = _sentinel,
+    use_ercot_api: Optional[bool] = _sentinel,
 ):
     """
     Decorator that supports both `EmissionsTracker` and `OfflineEmissionsTracker`
@@ -1937,6 +1947,10 @@ def track_emissions(
                              UK National Grid ESO Carbon Intensity API instead of
                              CodeCarbon's static country-average data. Defaults to
                              False.
+    :param use_ercot_api: Opt-in: when True and the detected location is Texas,
+                             compute live carbon intensity from ERCOT's public
+                             fuel-mix dashboard instead of the static annual state
+                             average. Defaults to False.
 
     :return: The decorated function
     """
@@ -1998,6 +2012,7 @@ def track_emissions(
                     rapl_prefer_psys=rapl_prefer_psys,
                     metadata=metadata,
                     use_national_grid_eso_api=use_national_grid_eso_api,
+                    use_ercot_api=use_ercot_api,
                 )
             else:
                 tracker = EmissionsTracker(
@@ -2039,6 +2054,7 @@ def track_emissions(
                     rapl_prefer_psys=rapl_prefer_psys,
                     metadata=metadata,
                     use_national_grid_eso_api=use_national_grid_eso_api,
+                    use_ercot_api=use_ercot_api,
                 )
             tracker.start()
             try:

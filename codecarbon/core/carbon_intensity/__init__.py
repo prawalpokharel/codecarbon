@@ -14,12 +14,14 @@ from codecarbon.core.carbon_intensity.base import (
     CarbonIntensityProvider,
 )
 from codecarbon.core.carbon_intensity.electricitymaps import ElectricityMapsProvider
+from codecarbon.core.carbon_intensity.ercot import ERCOTProvider
 from codecarbon.core.carbon_intensity.national_grid_eso import NationalGridESOProvider
 
 # Priority order: the first provider that covers the location and answers wins.
 PROVIDER_CLASSES: List[Type[CarbonIntensityProvider]] = [
     ElectricityMapsProvider,
     NationalGridESOProvider,
+    ERCOTProvider,
 ]
 
 
@@ -39,6 +41,7 @@ __all__ = [
     "CarbonIntensityCooldownError",
     "CarbonIntensityError",
     "CarbonIntensityProvider",
+    "ERCOTProvider",
     "ElectricityMapsProvider",
     "NationalGridESOProvider",
     "build_providers",

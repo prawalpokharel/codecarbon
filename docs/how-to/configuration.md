@@ -239,6 +239,44 @@ static data.
 If `electricitymaps_api_token` is also set, Electricity Maps takes priority
 and this source is only used as a fallback if that call fails.
 
+## ERCOT fuel mix (Texas)
+
+For runs detected as being in Texas, CodeCarbon can optionally compute live
+carbon intensity from the fuel mix on
+[ERCOT's public dashboard](https://www.ercot.com/gridmktinfo/dashboards/fuelmix)
+instead of the static annual state average, by setting `use_ercot_api=True`.
+This is **opt-in and off by default** and needs no token.
+
+``` python
+EmissionsTracker(use_ercot_api=True)
+```
+
+Or in your config file:
+
+``` ini
+[codecarbon]
+use_ercot_api = true
+```
+
+The dashboard reports generation by fuel every 5 minutes. CodeCarbon takes the
+latest interval and weights it with its own per-source factors from
+`carbon_intensity_per_source.json`: coal for "Coal and Lignite", natural gas,
+nuclear, solar, wind, hydroelectricity, and the generic fossil factor for
+"Other". Power storage is left out, because the energy a battery discharges
+was generated, and counted, when it was charged. Fetching, caching and
+back-off work as for the National Grid ESO source above.
+
+**Terms of use:** ERCOT's
+[terms of use](https://www.ercot.com/help/terms) allow raw data from public
+parts of its website to be used in analyses.
+
+**Scope:** the ERCOT grid serves about 90% of Texas load. El Paso, the
+Panhandle and parts of East Texas are on other grids, but a run located there
+is still detected as Texas and uses ERCOT's figure.
+
+If `electricitymaps_api_token` is also set, Electricity Maps takes priority
+and this source is only used as a fallback if that call fails.
+
 ## Tracking Mode
 
 The `tracking_mode` parameter controls how CodeCarbon measures power consumption. It accepts two values:
